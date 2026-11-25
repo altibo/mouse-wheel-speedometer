@@ -2,7 +2,6 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include <DNSServer.h>
-#include <EEPROM.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 
@@ -65,9 +64,7 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(REED_PIN), reedISR, FALLING);
   pinMode(PIEZO_PIN, OUTPUT);
 
-  EEPROM.begin(512);
-  EEPROM.get(0, allTimeMax);
-  if (isnan(allTimeMax) || allTimeMax < 0) allTimeMax = 0.0;
+  // allTimeMax starts at 0 on every restart
 
   // LCD init – SDA=D2, SCL=D3
   Wire.begin(D2, D3);
@@ -148,8 +145,6 @@ void loop() {
       if (currentSpeed > maxSpeed) maxSpeed = currentSpeed;
       if (currentSpeed > allTimeMax) {
         allTimeMax = currentSpeed;
-        EEPROM.put(0, allTimeMax);
-        EEPROM.commit();
         playRecordSound(true);
         recordBlink = true;
         lastBlink = millis();
