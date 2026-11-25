@@ -34,6 +34,8 @@ int sampleCount = 0;
 int sampleIndex = 0;
 unsigned long startMillis = 0;
 
+unsigned long lastClientCheck = 0;
+
 // Function prototypes
 void IRAM_ATTR reedISR();
 void handleRoot();
@@ -53,9 +55,13 @@ void setup() {
   EEPROM.get(0, allTimeMax);
   if (isnan(allTimeMax) || allTimeMax < 0) allTimeMax = 0.0;
 
-  // SoftAP (visible)
+  // SoftAP with explicit config
   WiFi.mode(WIFI_AP);
-  WiFi.softAP(ap_ssid, ap_password, 1, 0); // channel 1, hidden=0
+  IPAddress apIP(192, 168, 4, 1);
+  IPAddress gateway(192, 168, 4, 1);
+  IPAddress subnet(255, 255, 255, 0);
+  WiFi.softAPConfig(apIP, gateway, subnet);
+  WiFi.softAP(ap_ssid, ap_password, 1, 0);
   delay(100);
   Serial.print("AP IP: ");
   Serial.println(WiFi.softAPIP());
@@ -82,6 +88,12 @@ void IRAM_ATTR reedISR() {
 
 void loop() {
   server.handleClient();
+
+  if (millis() - lastClientCheck > 5000) {
+    lastClientCheck = millis();
+    Serial.print("Clients: ");
+    Serial.println(WiFi.softAPgetStationNum());
+  }
 
   if (pulseDetected) {
     pulseDetected = false;
