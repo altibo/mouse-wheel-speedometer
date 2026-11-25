@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
+#include <DNSServer.h>
 #include <EEPROM.h>
 
 #define REED_PIN D1
@@ -14,6 +15,8 @@ const float WHEEL_CIRC = WHEEL_DIAMETER * PI;
 const unsigned long DEBOUNCE_US = 50000;
 
 ESP8266WebServer server(80);
+DNSServer dnsServer;
+const byte DNS_PORT = 53;
 
 volatile unsigned long lastPulseTime = 0;
 volatile unsigned long pulseInterval = 0;
@@ -66,11 +69,15 @@ void setup() {
   Serial.print("AP IP: ");
   Serial.println(WiFi.softAPIP());
 
+  // DNS for captive portal
+  dnsServer.start(DNS_PORT, "*", apIP);
+
   startMillis = millis();
 
   server.on("/", handleRoot);
   server.on("/data", handleData);
   server.on("/stats", handleStats);
+  server.onNotFound(handleRoot); // redirect everything to root
   server.begin();
   Serial.println("Webserver started");
 
@@ -87,6 +94,7 @@ void IRAM_ATTR reedISR() {
 }
 
 void loop() {
+  dnsServer.processNextRequest();
   server.handleClient();
 
   if (millis() - lastClientCheck > 5000) {
