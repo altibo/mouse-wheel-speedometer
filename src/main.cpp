@@ -3,9 +3,12 @@
 #include <ESP8266WebServer.h>
 #include <DNSServer.h>
 #include <EEPROM.h>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
 
 #define REED_PIN D1
 #define PIEZO_PIN D2
+#define LCD_ADDR 0x27
 
 const char* ap_ssid = "Mausrad";
 const char* ap_password = "mausrad123"; // min 8 chars
@@ -17,6 +20,7 @@ const unsigned long DEBOUNCE_US = 50000;
 ESP8266WebServer server(80);
 DNSServer dnsServer;
 const byte DNS_PORT = 53;
+LiquidCrystal_I2C lcd(LCD_ADDR, 16, 2);
 
 volatile unsigned long lastPulseTime = 0;
 volatile unsigned long pulseInterval = 0;
@@ -29,6 +33,9 @@ float totalDistance = 0.0;
 unsigned long totalRunningTimeMs = 0;
 unsigned long sessionStart = 0;
 bool isRunning = false;
+bool recordBlink = false;
+unsigned long lastBlink = 0;
+bool blinkState = false;
 
 const int MAX_SAMPLES = 60;
 float speedHistory[MAX_SAMPLES];
@@ -38,6 +45,7 @@ int sampleIndex = 0;
 unsigned long startMillis = 0;
 
 unsigned long lastClientCheck = 0;
+unsigned long lastDisplayUpdate = 0;
 
 // Function prototypes
 void IRAM_ATTR reedISR();
@@ -48,6 +56,7 @@ void handleCaptive();
 void playStartupSound();
 void playRecordSound(bool isAllTime);
 void addSample(float speed);
+void updateDisplay();
 
 void setup() {
   Serial.begin(115200);
@@ -58,6 +67,17 @@ void setup() {
   EEPROM.begin(512);
   EEPROM.get(0, allTimeMax);
   if (isnan(allTimeMax) || allTimeMax < 0) allTimeMax = 0.0;
+
+  // LCD init
+  Wire.begin(D2, D1); // SDA, SCL
+  lcd.init();
+  lcd.backlight();
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("NEON MAUSRAD");
+  lcd.setCursor(0, 1);
+  lcd.print("SYSTEM ONLINE");
+  delay(1500);
 
   // SoftAP with explicit config
   WiFi.mode(WIFI_AP);
@@ -130,6 +150,8 @@ void loop() {
         EEPROM.put(0, allTimeMax);
         EEPROM.commit();
         playRecordSound(true);
+        recordBlink = true;
+        lastBlink = millis();
       }
 
       addSample(currentSpeed);
@@ -141,7 +163,47 @@ void loop() {
     totalRunningTimeMs += millis() - sessionStart;
   }
 
+  // Display update
+  if (millis() - lastDisplayUpdate > 300) {
+    lastDisplayUpdate = millis();
+    updateDisplay();
+  }
+
+  // Blink control for record
+  if (recordBlink && millis() - lastBlink > 5000) {
+    recordBlink = false;
+    lcd.backlight();
+  }
+
   delay(10);
+}
+
+void updateDisplay() {
+  if (recordBlink) {
+    if (millis() - lastBlink > 200) {
+      lastBlink = millis();
+      blinkState = !blinkState;
+      if (blinkState) lcd.backlight();
+      else lcd.noBacklight();
+    }
+  }
+
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("SPD:");
+  lcd.print(currentSpeed, 1);
+  lcd.print(" km/h");
+
+  lcd.setCursor(0, 1);
+  if (recordBlink) {
+    lcd.print(">> NEW RECORD <<");
+  } else {
+    lcd.print("MAX:");
+    lcd.print(allTimeMax, 1);
+    lcd.print(" ");
+    if (isRunning) lcd.print("RUN");
+    else lcd.print("IDLE");
+  }
 }
 
 void addSample(float speed) {
