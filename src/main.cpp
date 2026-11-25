@@ -33,6 +33,7 @@ unsigned long totalRunningTimeMs = 0;
 unsigned long sessionStart = 0;
 bool isRunning = false;
 bool recordBlink = false;
+unsigned long recordStart = 0;
 unsigned long lastBlink = 0;
 bool blinkState = false;
 
@@ -147,6 +148,7 @@ void loop() {
         allTimeMax = currentSpeed;
         playRecordSound(true);
         recordBlink = true;
+        recordStart = millis();
         lastBlink = millis();
       }
 
@@ -165,10 +167,11 @@ void loop() {
     updateDisplay();
   }
 
-  // Blink control for record
-  if (recordBlink && millis() - lastBlink > 5000) {
+  // End record blink after 5 seconds
+  if (recordBlink && millis() - recordStart > 5000) {
     recordBlink = false;
     lcd.backlight();
+    displayInitialized = false; // force redraw of normal layout
   }
 
   delay(10);
