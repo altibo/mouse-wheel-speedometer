@@ -7,7 +7,7 @@
 #include <LiquidCrystal_I2C.h>
 
 #define REED_PIN D1
-#define PIEZO_PIN D2
+#define PIEZO_PIN D4
 #define LCD_ADDR 0x3F
 
 const char* ap_ssid = "Mausrad";
@@ -68,8 +68,8 @@ void setup() {
   EEPROM.get(0, allTimeMax);
   if (isnan(allTimeMax) || allTimeMax < 0) allTimeMax = 0.0;
 
-  // LCD init
-  Wire.begin(D2, D1); // SDA, SCL
+  // LCD init – SDA=D2, SCL=D3
+  Wire.begin(D2, D3);
   lcd.init();
   lcd.backlight();
   lcd.clear();
