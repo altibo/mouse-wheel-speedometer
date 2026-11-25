@@ -35,7 +35,7 @@ int sampleIndex = 0;
 unsigned long startMillis = 0;
 
 // Function prototypes
-void reedISR();
+void ICACHE_RAM_ATTR reedISR();
 void handleRoot();
 void handleData();
 void handleStats();
@@ -69,7 +69,7 @@ void setup() {
   playStartupSound();
 }
 
-void reedISR() {
+void ICACHE_RAM_ATTR reedISR() {
   unsigned long now = micros();
   if (now - lastPulseTime > DEBOUNCE_US) {
     pulseInterval = now - lastPulseTime;
