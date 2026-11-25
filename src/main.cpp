@@ -8,7 +8,7 @@
 
 #define REED_PIN D1
 #define PIEZO_PIN D2
-#define LCD_ADDR 0x27
+#define LCD_ADDR 0x3F
 
 const char* ap_ssid = "Mausrad";
 const char* ap_password = "mausrad123"; // min 8 chars
