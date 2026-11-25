@@ -34,6 +34,15 @@ int sampleCount = 0;
 int sampleIndex = 0;
 unsigned long startMillis = 0;
 
+// Function prototypes
+void reedISR();
+void handleRoot();
+void handleData();
+void handleStats();
+void playStartupSound();
+void playRecordSound(bool isAllTime);
+void addSample(float speed);
+
 void setup() {
   Serial.begin(115200);
   pinMode(REED_PIN, INPUT_PULLUP);
