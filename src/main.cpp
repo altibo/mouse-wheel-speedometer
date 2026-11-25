@@ -53,9 +53,10 @@ void setup() {
   EEPROM.get(0, allTimeMax);
   if (isnan(allTimeMax) || allTimeMax < 0) allTimeMax = 0.0;
 
-  // Hidden SoftAP
+  // SoftAP (visible)
   WiFi.mode(WIFI_AP);
-  WiFi.softAP(ap_ssid, ap_password, 1, 1); // channel 1, hidden=1
+  WiFi.softAP(ap_ssid, ap_password, 1, 0); // channel 1, hidden=0
+  delay(100);
   Serial.print("AP IP: ");
   Serial.println(WiFi.softAPIP());
 
@@ -65,6 +66,7 @@ void setup() {
   server.on("/data", handleData);
   server.on("/stats", handleStats);
   server.begin();
+  Serial.println("Webserver started");
 
   playStartupSound();
 }
@@ -121,6 +123,7 @@ void addSample(float speed) {
 }
 
 void handleRoot() {
+  Serial.println("Root request");
   String html = R"rawliteral(
 <!DOCTYPE html>
 <html>
@@ -198,6 +201,7 @@ void handleRoot() {
 }
 
 void handleData() {
+  Serial.println("Data request");
   String json = "{\"labels\":[";
   String speeds = "],\"speeds\":[";
   for (int i = 0; i < sampleCount; i++) {
@@ -211,6 +215,7 @@ void handleData() {
 }
 
 void handleStats() {
+  Serial.println("Stats request");
   float sum = 0;
   for (int i = 0; i < sampleCount; i++) {
     int idx = (sampleIndex - sampleCount + i + MAX_SAMPLES) % MAX_SAMPLES;
