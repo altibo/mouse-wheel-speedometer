@@ -7,39 +7,37 @@ Project to measure the speed of a mouse running in a 30 cm diameter wheel using 
 ### NodeMCU (ESP8266) – Recommended
 `nodemcu_mouse_speed.ino`
 
-- WiFi Webserver with live graph (Chart.js)
-- Statistics: current / max / mean speed, total distance, running time, activity by hour
-- NTP time for hourly activity
-- All-time max in EEPROM
-- Piezo sound on records
+- Eigener versteckter Hotspot (kein Internet nötig)
+- Webserver mit Live-Graph (kein externes JS)
+- Statistik: aktuell, Max, Mittel, Distanz, Laufzeit
+- All-Time-Max in EEPROM
+- Piezo bei Rekord
 
 **Wiring (NodeMCU):**
 - Reed switch: D1 ↔ GND (INPUT_PULLUP)
 - Piezo: D2 ↔ GND
-- Power via USB or VIN
+- Power via USB oder VIN
 
 **Setup:**
-1. Install ESP8266 board package in Arduino IDE
+1. ESP8266 Board Package installieren
 2. Board: NodeMCU 1.0 (ESP-12E Module)
-3. Edit WiFi SSID/Password in the sketch
-4. Upload
-5. Open serial monitor for IP address, then browse to it
+3. Upload `nodemcu_mouse_speed.ino`
+4. Mit dem versteckten WLAN "Mausrad" (Passwort: mausrad123) verbinden
+5. Browser öffnen: http://192.168.4.1
 
-**Libraries:** Built-in (ESP8266WiFi, ESP8266WebServer, NTPClient)
+**Libraries:** Nur Standard (ESP8266WiFi, ESP8266WebServer)
 
 ### Arduino Pro Micro (legacy)
 `mouse_speedometer.ino`
 
-- 8x8 MAX7219 LED matrix display
-- Piezo sounds
-- See previous commit history for details
+- 8x8 MAX7219 LED-Matrix
+- Siehe ältere Commits
 
 ## Features (NodeMCU)
 
-- Live speed graph
-- Current, session max, all-time max, mean speed
-- Total distance and running time
-- Activity histogram by hour of day
-- Automatic session detection
+- Live-Geschwindigkeitsgraph
+- Aktuell, Session-Max, All-Time-Max, Mittel
+- Gesamtdistanz und Laufzeit
+- Session-Erkennung
 
-Wheel circumference: π × 0.3 m
+Radumfang: π × 0.3 m
