@@ -46,6 +46,7 @@ unsigned long startMillis = 0;
 
 unsigned long lastClientCheck = 0;
 unsigned long lastDisplayUpdate = 0;
+bool displayInitialized = false;
 
 // Function prototypes
 void IRAM_ATTR reedISR();
@@ -179,6 +180,15 @@ void loop() {
 }
 
 void updateDisplay() {
+  if (!displayInitialized) {
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("SPD:");
+    lcd.setCursor(0, 1);
+    lcd.print("MAX:");
+    displayInitialized = true;
+  }
+
   if (recordBlink) {
     if (millis() - lastBlink > 200) {
       lastBlink = millis();
@@ -186,24 +196,22 @@ void updateDisplay() {
       if (blinkState) lcd.backlight();
       else lcd.noBacklight();
     }
-  }
-
-  lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("SPD:");
-  lcd.print(currentSpeed, 1);
-  lcd.print(" km/h");
-
-  lcd.setCursor(0, 1);
-  if (recordBlink) {
+    lcd.setCursor(0, 1);
     lcd.print(">> NEW RECORD <<");
-  } else {
-    lcd.print("MAX:");
-    lcd.print(allTimeMax, 1);
-    lcd.print(" ");
-    if (isRunning) lcd.print("RUN");
-    else lcd.print("IDLE");
+    return;
   }
+
+  // Update speed
+  lcd.setCursor(4, 0);
+  lcd.print(currentSpeed, 1);
+  lcd.print(" km/h ");
+
+  // Update max / status
+  lcd.setCursor(4, 1);
+  lcd.print(allTimeMax, 1);
+  lcd.print(" ");
+  if (isRunning) lcd.print("RUN ");
+  else lcd.print("IDLE");
 }
 
 void addSample(float speed) {
