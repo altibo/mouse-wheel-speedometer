@@ -34,8 +34,6 @@ unsigned long sessionStart = 0;
 bool isRunning = false;
 bool recordBlink = false;
 unsigned long recordStart = 0;
-unsigned long lastBlink = 0;
-bool blinkState = false;
 
 const int MAX_SAMPLES = 60;
 float speedHistory[MAX_SAMPLES];
@@ -149,7 +147,7 @@ void loop() {
         playRecordSound(true);
         recordBlink = true;
         recordStart = millis();
-        lastBlink = millis();
+        lcd.noBacklight(); // one blink
       }
 
       addSample(currentSpeed);
@@ -167,11 +165,11 @@ void loop() {
     updateDisplay();
   }
 
-  // End record blink after 5 seconds
-  if (recordBlink && millis() - recordStart > 5000) {
+  // End single blink after 400ms
+  if (recordBlink && millis() - recordStart > 400) {
     recordBlink = false;
     lcd.backlight();
-    displayInitialized = false; // force redraw of normal layout
+    displayInitialized = false;
   }
 
   delay(10);
@@ -188,12 +186,6 @@ void updateDisplay() {
   }
 
   if (recordBlink) {
-    if (millis() - lastBlink > 200) {
-      lastBlink = millis();
-      blinkState = !blinkState;
-      if (blinkState) lcd.backlight();
-      else lcd.noBacklight();
-    }
     lcd.setCursor(0, 1);
     lcd.print(">> NEW RECORD <<");
     return;
