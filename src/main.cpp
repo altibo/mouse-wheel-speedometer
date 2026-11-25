@@ -44,6 +44,7 @@ void IRAM_ATTR reedISR();
 void handleRoot();
 void handleData();
 void handleStats();
+void handleCaptive();
 void playStartupSound();
 void playRecordSound(bool isAllTime);
 void addSample(float speed);
@@ -77,7 +78,15 @@ void setup() {
   server.on("/", handleRoot);
   server.on("/data", handleData);
   server.on("/stats", handleStats);
-  server.onNotFound(handleRoot); // redirect everything to root
+
+  // Android / Google captive portal checks – return 204 so no login page
+  server.on("/generate_204", handleCaptive);
+  server.on("/gen_204", handleCaptive);
+  server.on("/hotspot-detect.html", handleCaptive);
+  server.on("/ncsi.txt", handleCaptive);
+  server.on("/connecttest.txt", handleCaptive);
+
+  server.onNotFound(handleRoot);
   server.begin();
   Serial.println("Webserver started");
 
@@ -140,6 +149,10 @@ void addSample(float speed) {
   timeHistory[sampleIndex] = (millis() - startMillis) / 1000;
   sampleIndex = (sampleIndex + 1) % MAX_SAMPLES;
   if (sampleCount < MAX_SAMPLES) sampleCount++;
+}
+
+void handleCaptive() {
+  server.send(204, "text/plain", "");
 }
 
 void handleRoot() {
